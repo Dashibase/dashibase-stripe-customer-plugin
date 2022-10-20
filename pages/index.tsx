@@ -13,6 +13,21 @@ const Home: NextPage = () => {
   const [loadingCards, setLoadingCards] = useState(true)
   const [error, setError] = useState<any>()
 
+  async function importClient () {
+    const { PluginClient } = await import('../utils/PluginClient')
+    const client = new PluginClient()
+
+    // Setup plugin
+    client.onSetup((data) => {
+      console.log("Plugin: Received SETUP message ", data)
+      client.setBlockDimensions(250, 100, false)
+    })
+  }
+
+  useEffect(() => {
+    importClient()
+  }, [])
+
   function onReceiveMessage(event: MessageEvent) {
     if (event.origin === "http://localhost:5173") {
       const message = event.data

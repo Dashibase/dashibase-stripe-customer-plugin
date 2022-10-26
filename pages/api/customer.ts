@@ -18,9 +18,15 @@ export default async function handler(
 
   try {
     const customer = await stripe.customers.retrieve(customerId, {
-      expand: ['sources', 'subscriptions']
+      expand: ['sources']
     });
-    res.status(200).json(customer)
+    const subscriptions = await stripe.subscriptions.list({
+      customer: customer.id,
+      status: 'all',
+      expand: ['data.plan.product']
+
+    })
+    res.status(200).json({ customer, subscriptions })
   } catch (error) {
     if (error instanceof Stripe.errors.StripeError) {
       res.status(error.statusCode ? error.statusCode : 400).json({ error })

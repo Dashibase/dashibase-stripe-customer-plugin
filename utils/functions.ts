@@ -1,7 +1,7 @@
 export const getTime = (timestamp: number) => {
   const date = new Date(timestamp)
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"]
-  return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`
+  return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`
 }
 
 export const getCurrencySymbol = (currency: string) => {
@@ -28,4 +28,24 @@ export const getCurrencySymbol = (currency: string) => {
   } else {
     return currency
   }
+}
+
+export const getInterval = (interval: string) => {
+  let string = ''
+  switch (interval) {
+    case 'day':
+      string = 'day'
+      break;
+    case 'week':
+      string = 'wk'
+      break;
+    case 'month':
+      string = 'mo'
+      break;
+    case 'year':
+      string = 'yr'
+      break;
+  }
+
+  return string
 }

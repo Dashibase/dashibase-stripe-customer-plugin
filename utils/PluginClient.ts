@@ -54,10 +54,27 @@ export interface StoreMessage {
 
 export class PluginClient {
   source: MessageEventSource|null
+  sourceOrigin: string 
 
   constructor () {
     // Dashibase's window to send and receive messages
     this.source = null
+    this.sourceOrigin = ''
+  }
+
+  init () {
+    const message = {
+      messageType: MessageType.SETUP
+    }
+    parent.postMessage(message, "*")
+  }
+
+  isFromDashibase (url: string) {
+    if (this.sourceOrigin) return url === this.sourceOrigin
+    const isFromDashibase = url.startsWith('https://beta.dashibase.com') || url.startsWith('https://alpha-451.dashibase.com')
+      || url.startsWith('https://dashibase.com') || url.startsWith('http://localhost:')
+    if (isFromDashibase) this.sourceOrigin = url
+    return isFromDashibase
   }
 
   /**
@@ -72,9 +89,11 @@ export class PluginClient {
     const controller = new AbortController()
     // Listen for the SetupMessage
     window.addEventListener("message", (event: MessageEvent<SetupMessage>) => {
-      // TODO - Check event.origin to make sure it's from Dashibase
+      // Check event.origin to make sure it's from Dashibase
+      if (!this.isFromDashibase(event.origin)) return
       // Handle SetupMessage
       if (event.data.messageType === MessageType.SETUP) {
+        console.log("PLUGIN: setup message", event.data)
         this.source = event.source
         func(event.data)
         controller.abort()
@@ -106,7 +125,8 @@ export class PluginClient {
 
     // Listen for the reply SetDimensionsMessage which implies success
     window.addEventListener("message", (event: MessageEvent<SetDimensionsMessage>) => {
-      // TODO - Check event.origin to make sure it's from Dashibase
+      // Check event.origin to make sure it's from Dashibase
+      if (!this.isFromDashibase(event.origin)) return
       // Make sure that it's from the same source
       if (event.source !== this.source) return
       // Make sure that it's the correct message ID
@@ -122,16 +142,14 @@ export class PluginClient {
       signal: controller.signal,
     })
 
-    const setDimMessage = {
+    // Send the SetDimensionsMessage
+    this.source.postMessage({
       id: messageId,
       messageType: MessageType.SET_DIM,
       height,
       width,
       resizable,
-    } as SetDimensionsMessage
-
-    // Send the SetDimensionsMessage
-    this.source.postMessage(setDimMessage, "*")
+    } as SetDimensionsMessage, { targetOrigin: this.sourceOrigin })
 
     return new Promise<SetDimensionsMessage>(resolve => {
       resolveMessage = resolve as CallbackFunction
@@ -158,7 +176,8 @@ export class PluginClient {
 
     // Listen for the RespondMessage
     window.addEventListener("message", (event: MessageEvent<RespondMessage>) => {
-      // TODO - Check event.origin to make sure it's from Dashibase
+      // Check event.origin to make sure it's from Dashibase
+      if (!this.isFromDashibase(event.origin)) return
       // Make sure that it's from the same source
       if (event.source !== this.source) return
       // Make sure that it's the correct message ID
@@ -179,7 +198,7 @@ export class PluginClient {
       id: messageId,
       messageType: MessageType.REQUEST,
       key,
-    } as RequestMessage)
+    } as RequestMessage, { targetOrigin: this.sourceOrigin })
 
     return new Promise<RespondMessage>(resolve => {
       resolveMessage = resolve as CallbackFunction
@@ -207,7 +226,8 @@ export class PluginClient {
 
     // Listen for the reply StoreMessage which implies success
     window.addEventListener("message", (event: MessageEvent<StoreMessage>) => {
-      // TODO - Check event.origin to make sure it's from Dashibase
+      // Check event.origin to make sure it's from Dashibase
+      if (!this.isFromDashibase(event.origin)) return
       // Make sure that it's from the same source
       if (event.source !== this.source) return
       // Make sure that it's the correct message ID
@@ -229,10 +249,11 @@ export class PluginClient {
       messageType: MessageType.STORE,
       key,
       value,
-    } as StoreMessage)
+    } as StoreMessage, { targetOrigin: this.sourceOrigin })
 
     return new Promise<StoreMessage>(resolve => {
       resolveMessage = resolve as CallbackFunction
     })
   }
 }
+

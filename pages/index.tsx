@@ -1,72 +1,104 @@
 import type { NextPage } from 'next'
-import { useEffect, useState } from 'react'
-import CustomerCard from '../components/CustomerCard'
-import PaymentMethods from '../components/PaymentMethods'
+import { useEffect, useRef, useState } from 'react'
+import Dropdown from '../components/Dropdown'
+import CustomerInfo from '../components/CustomerInfo'
 import Subscriptions from '../components/Subscriptions'
-import { getTime } from "../utils/functions";
+import { PluginClient } from '../utils/PluginClient'
+
+interface columnIdOption {
+  name: string
+}
 
 const Home: NextPage = () => {
+  const clientInitialized = useRef(false)
+  const client = useRef<PluginClient>()
+  const [options, setOptions] = useState<columnIdOption[]>([])    // Store columnIds for populating dropdown
+  const [columnId, setColumnId] = useState<columnIdOption>()      // Store column selected by user
+  const [setupRequired, setSetupRequired] = useState(false)       // Check whether plugin has finished setup
+
   const [customerId, setCustomerId] = useState()
-  const [customer, setCustomer] = useState<any>({})
-  const [cards, setCards] = useState([])
-  const [loadingCustomer, setLoadingCustomer] = useState(true)
-  const [loadingCards, setLoadingCards] = useState(true)
+  const [customer, setCustomer] = useState<any>()
+  const [subscriptions, setSubscriptions] = useState<any>()
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<any>()
 
   async function importClient () {
     const { PluginClient } = await import('../utils/PluginClient')
-    const client = new PluginClient()
+    client.current = new PluginClient()
+    console.log(client.current)
 
     // Setup plugin
-    client.onSetup((data) => {
-      console.log("Plugin: Received SETUP message ", data)
-      client.setBlockDimensions(250, 100, false)
-    })
-  }
-
-  useEffect(() => {
-    importClient()
-  }, [])
-
-  function onReceiveMessage(event: MessageEvent) {
-    if (event.origin === "http://localhost:5173") {
-      const message = event.data
-      switch (message.type) {
-        case "SETUP":
-          setCustomerId(message.data.customerId)
-          break;
+    client.current.onSetup((data) => {
+      if (data.store.stripeColumnId) {
+        // Get stripe customer ID
+        const storedColumnId = data.store.stripeColumnId 
+        getStripeCustomerId(storedColumnId)
+      } else {
+        // Show dropdown for plugin setup
+        setSetupRequired(true)
+        if (data.columnIds.length) {
+          setColumnId({ name: data.columnIds[0] })
+          setOptions(data.columnIds.map(col => ({ name: col })))
+        }
       }
-    }
+    })
+
+    // Send setup request to Dashibase
+    client.current.init()
+  }
+
+  function handleSave () {
+    client.current.store("stripeColumnId", columnId.name)
+      .then((response) => {
+        const columnId = response.value
+        getStripeCustomerId(columnId)
+      })
+  }
+
+  function getStripeCustomerId (key: string) {
+    console.log("request stripe customer id")
+    client.current.request(key)
+      .then((response) => {
+        const stripeCustomerId = response.value
+        setCustomerId(stripeCustomerId)
+        setSetupRequired(false)
+      })
   }
 
   useEffect(() => {
-    window.addEventListener("message", onReceiveMessage)
-    return () => window.removeEventListener("message", onReceiveMessage)
+    if (clientInitialized.current === false) {
+      clientInitialized.current = true
+      importClient()
+    }
   }, [])
 
   useEffect(() => {
     if (!customerId) return;
     
+    setLoading(true)
     fetch(`/api/customer?customerId=${customerId}`)
       .then(resp => resp.json())
       .then(data => {
         if (!data.error) {
-          setCustomer(data)
-          setLoadingCustomer(false)
+          setCustomer(data.customer)
+          setSubscriptions(data.subscriptions)
+          setLoading(false)
         } else {
           setError(data.error)
         }
       })
-
-    fetch(`/api/cards?customerId=${customerId}`)
-      .then(resp => resp.json())
-      .then(data => {
-        if (!data.error) {
-          setCards(data.data)
-          setLoadingCards(false)
-        }
-      })
   }, [customerId])
+
+  if (setupRequired) {
+    return (
+      <div className="z-0 p-5 text-right">
+        <Dropdown options={options} columnId={columnId} setColumnId={setColumnId} />
+        <button onClick={handleSave} className="flex items-center px-3 py-1 mt-5 text-sm text-white bg-indigo-400 rounded justify-evenly">
+          Save
+        </button>
+    </div>
+    )
+  }
 
   if (error) {
     return (
@@ -86,7 +118,7 @@ const Home: NextPage = () => {
     )
   }
   
-  if (loadingCustomer || loadingCards) {
+  if (loading) {
     return (
       <div className="p-5 animate-pulse">
         <div
@@ -110,18 +142,12 @@ const Home: NextPage = () => {
   }
 
   return (
-    <div className="p-5">
-      <CustomerCard customer={customer} />
-      
-      <PaymentMethods cards={cards} />
-
-      <Subscriptions subscriptions={customer.subscriptions.data} />
-
-      <p className="my-5 text-black">
-        <span className="font-light">Customer since: </span>{getTime(customer.created*1000)}
-      </p>
+    <div className="px-10 py-5">
+      <CustomerInfo customer={customer} />
+      <Subscriptions subscriptions={subscriptions.data} />
     </div>
   )
+
 }
 
 export default Home

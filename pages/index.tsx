@@ -3,7 +3,9 @@ import { useEffect, useRef, useState } from 'react'
 import Dropdown from '../components/Dropdown'
 import CustomerInfo from '../components/CustomerInfo'
 import Subscriptions from '../components/Subscriptions'
-import { PluginClient } from '../utils/PluginClient'
+//import PluginClient from '@dashibase/plugin-client'
+import PluginClient from '@dashibase/plugin-client'
+
 
 interface columnIdOption {
   name: string
@@ -23,9 +25,8 @@ const Home: NextPage = () => {
   const [error, setError] = useState<any>()
 
   async function importClient () {
-    const { PluginClient } = await import('../utils/PluginClient')
+    const PluginClient = (await import('@dashibase/plugin-client')).default
     client.current = new PluginClient()
-    console.log(client.current)
 
     // Setup plugin
     client.current.onSetup((data) => {

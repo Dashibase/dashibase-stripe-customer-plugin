@@ -1,14 +1,10 @@
 import type { NextPage } from 'next'
+import type PluginClient from '@dashibase/plugin-client'
+
 import { useEffect, useRef, useState } from 'react'
 import Dropdown from '../components/Dropdown'
 import CustomerInfo from '../components/CustomerInfo'
 import Subscriptions from '../components/Subscriptions'
-//import PluginClient from '@dashibase/plugin-client'
-
-import type PluginClient from '@dashibase/plugin-client'
-interface columnIdOption {
-  name: string
-}
 
 const Home: NextPage = () => {
   const clientInitialized = useRef(false)
@@ -74,7 +70,6 @@ const Home: NextPage = () => {
     }
   }, [])
 
-  /*
   useEffect(() => {
     if (!customerId) return;
     
@@ -91,7 +86,6 @@ const Home: NextPage = () => {
         }
       })
   }, [customerId])
-  */
 
   if (setupRequired) {
     return (
@@ -104,7 +98,6 @@ const Home: NextPage = () => {
     )
   }
 
-  /*
   if (error) {
     return (
       <div className="h-[100vh] flex items-center text-center bg-red-200">
@@ -122,7 +115,6 @@ const Home: NextPage = () => {
       </div>
     )
   }
-  */
   
   if (loading) {
     return (
@@ -146,7 +138,6 @@ const Home: NextPage = () => {
       </div>
     )
   }
-  /*
 
   return (
     <div className="px-10 py-5">
@@ -154,8 +145,11 @@ const Home: NextPage = () => {
       <Subscriptions subscriptions={subscriptions.data} />
     </div>
   )
-  */
 
 }
 
 export default Home
+
+export interface columnIdOption {
+  name: string
+}

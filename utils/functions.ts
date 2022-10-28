@@ -1,3 +1,9 @@
+export const getTime = (timestamp: number) => {
+   const date = new Date(timestamp)
+   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"]
+   return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`
+ }
+
 export const getCurrencySymbol = (currency: string) => {
   const currencySymbols = {
     'usd': '$', // US Dollar

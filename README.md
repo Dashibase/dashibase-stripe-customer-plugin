@@ -1,3 +1,9 @@
+## Deploy with Vercel
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FDashibase%2Fdashibase-stripe-customer-plugin&env=STRIPE_SECRET_KEY&envDescription=Stripe%20secret%20key%20is%20needed%20to%20fetch%20customer%20information%20from%20Stripe)
+
+Easily deploy this plugin yourself by clicking the button. You will be asked to enter your Stripe secret key for the `STRIPE_SECRET_KEY` environment variable.
+
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
 ## Getting Started

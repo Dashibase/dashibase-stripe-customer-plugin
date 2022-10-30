@@ -5,15 +5,8 @@ export default function CustomerInfo({ customer }) {
         <p className="text-3xl font-semibold">
           {customer.name ? customer.name : "Stripe customer"}
         </p>
-        {
-          /*
-             <p className="text-sm text-gray-500"> 
-             {customer.email ? customer.email : "No email attached"}
-             </p>
-             */
-        }
       </div>
-      <a href={`https://dashboard.stripe.com/customers/${customer.id}`} target="_blank" rel="noopener">
+      <a href={`https://dashboard.stripe.com/customers/${customer.id}`} target="_blank" rel="noreferrer">
         <button className="px-3 py-2 text-sm text-white bg-indigo-500 rounded">
           View in Stripe
         </button>

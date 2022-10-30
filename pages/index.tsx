@@ -25,8 +25,6 @@ const Home: NextPage = () => {
 
     // Setup plugin
     client.current.onSetup((data) => {
-      if (!data || !data.store) return;
-
       if (data.store.stripeColumnId) {
         // Get stripe customer ID
         const storedColumnId = data.store.stripeColumnId 
@@ -41,7 +39,7 @@ const Home: NextPage = () => {
       }
     })
 
-    // Send setup request to Dashibase
+    // Tell Dashibase we are ready
     client.current.init()
   }
 
@@ -54,7 +52,6 @@ const Home: NextPage = () => {
   }
 
   function getStripeCustomerId (key: string) {
-    console.log("request stripe customer id")
     client.current.request(key)
       .then((response) => {
         const stripeCustomerId = response.value

@@ -46,7 +46,7 @@ function SubscriptionPlan({ subscription }) {
   return (
     <p className="pb-1 text-base font-normal">
       <span className="text-xl font-semibold">
-        {`${getCurrencySymbol(subscription.plan.currency)} ${subscription.plan.amount/100}`}
+        {`${getCurrencySymbol(subscription.plan.currency)} ${(subscription.plan.amount/100).toFixed(2)}`}
       </span>
       {` / ${getInterval(subscription.plan.interval)}`}
     </p>
